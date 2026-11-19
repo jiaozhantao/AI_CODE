@@ -1,0 +1,6 @@
+/*
+ * SgExam 单体版本 - Gradle 设置
+ * 只有一个模块: sg-user-service (已合并 sg-api / sg-common / sg-exam-service / sg-generator / sg-job)
+ */
+rootProject.name = 'sg-exam-monolith'
+include 'sg-user-service'

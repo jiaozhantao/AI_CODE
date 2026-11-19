@@ -1,0 +1,122 @@
+/*
+ * SgExam 单体版本 - 构建脚本
+ * 基于 Spring Boot 2.7.1 + JDK 17
+ * 合并前的模块: sg-api, sg-common, sg-exam-service, sg-generator, sg-job, sg-user-service
+ */
+plugins {
+    id 'java'
+    id "org.springframework.boot" version "2.7.1"
+    id "io.spring.dependency-management" version "1.0.11.RELEASE"
+}
+
+group 'com.github.tangyi'
+version '1.0.0'
+description 'SgExam 在线考试系统 - 单体版'
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+repositories {
+    mavenCentral()
+    maven { url 'https://maven.aliyun.com/nexus/content/groups/public' }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:2.7.1")
+    }
+}
+
+dependencies {
+    // ====== Spring Boot 核心 ======
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    }
+    implementation 'org.springframework.boot:spring-boot-starter-undertow'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // ====== MyBatis ======
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.1.3'
+    implementation 'tk.mybatis:mapper-spring-boot-starter:4.2.1'
+    implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:1.4.2'
+
+    // ====== 数据库 ======
+    implementation 'mysql:mysql-connector-java:8.0.33'
+    runtimeOnly 'com.h2database:h2'
+    implementation 'com.github.kstyrc:embedded-redis:0.6'
+
+    // ====== 通用工具 ======
+    implementation 'cn.hutool:hutool-all:5.8.26'
+    implementation 'com.google.guava:guava:32.1.3-jre'
+    implementation 'org.apache.commons:commons-lang3'
+    implementation 'org.apache.commons:commons-collections4:4.4'
+    implementation 'commons-io:commons-io:2.15.1'
+    implementation 'com.alibaba:fastjson:2.0.43'
+    implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.15.3'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.15.3'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.3'
+
+    // ====== Swagger / API 文档 ======
+    implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
+
+    // ====== 考试相关 ======
+    implementation 'org.dromara.x-easypdf:x-easypdf:3.0.0'
+    implementation 'com.google.zxing:core:3.5.3'
+    implementation 'com.google.zxing:javase:3.5.3'
+    implementation 'com.qiniu:qiniu-java-sdk:7.13.1'
+    implementation 'io.minio:minio:8.5.11'
+
+    // ====== 中文分词 / 搜索 ======
+    implementation 'org.apache.lucene:lucene-core:9.8.0'
+    implementation 'org.apache.lucene:lucene-analyzers-common:9.8.0'
+    implementation 'com.jianggujin:IKAnalyzer-lucene:8.0.0'
+
+    // ====== 安全 / 加密 ======
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
+
+    // ====== 验证码 ======
+    implementation 'com.github.axet:kaptcha:2.3.3'
+
+    // ====== Excel 导入导出 ======
+    implementation 'com.alibaba:easyexcel:3.3.4'
+
+    // ====== Mapper ======
+    implementation 'javax.persistence:persistence-api:1.0'
+    implementation 'it.unimi.dsi:fastutil:8.5.12'
+
+    // ====== 微信（可选，不启动微信功能也能跑）======
+    implementation 'com.github.binarywang:weixin-java-miniapp:4.5.0'
+
+    // ====== Prometheus 监控（可选）======
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.11.5'
+
+    // ====== 加密配置 ======
+    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
+
+    // ====== AI 语音合成（可选）======
+    implementation('com.baidu.aip:java-sdk:4.16.18') {
+        exclude group: 'org.slf4j', module: 'slf4j-simple'
+    }
+
+    // ====== 编译时注解 ======
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // ====== 测试 ======
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}

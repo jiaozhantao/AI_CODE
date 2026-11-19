@@ -1,0 +1,162 @@
+# ============================================================================
+# SgExam 单体版本 - 主配置文件
+# dev profile: 用内置 H2 数据库 + embedded Redis，零依赖可直接启动
+# docker profile: 用 MySQL + Redis，生产环境用
+# ============================================================================
+
+server:
+  port: 8080
+  servlet:
+    context-path: /sg-exam
+
+spring:
+  application:
+    name: sg-exam
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
+  jackson:
+    default-property-inclusion: NON_NULL
+    time-zone: ${user.timezone:GMT+8}
+    date-format: yyyy-MM-dd HH:mm:ss
+
+mybatis:
+  type-aliases-package: com.github.tangyi.api
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath*:mappers/**/*.xml
+
+mapper:
+  mappers: tk.mybatis.mapper.common.Mapper
+  identity: MYSQL
+  style: camelhumpAndUppercase
+  before: true
+  not-empty: false
+  safe-delete: true
+  safe-update: true
+
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui: /swagger-ui.html
+  packages-to-scan: com.github.tangyi.user.controller,com.github.tangyi.exam.controller
+
+sys:
+  key: '1234567887654321'
+  cacheExpire: 86400
+
+# MinIO 文件存储（单体开发也可以用本地文件，MinIO 可选）
+minio:
+  enabled: false
+  endpoint: ${MINIO_ENDPOINT:http://127.0.0.1:9000}
+  bucket: ${MINIO_BUCKET:sg-exam}
+  access-key: ${MINIO_ACCESS_KEY:minio}
+  secret-key: ${MINIO_SECRET_KEY:minio123}
+
+# ============================================================================
+# dev profile: H2 内存数据库 + embedded Redis，零依赖启动
+# ============================================================================
+---
+spring:
+  profiles: dev
+  datasource:
+    url: jdbc:h2:file:./data/h2/sg-exam;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;NON_KEYWORDS=USER,VALUE;AUTO_SERVER=TRUE
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      auto-commit: true
+      idle-timeout: 30000
+      max-lifetime: 500000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+  h2:
+    console:
+      enabled: true
+      path: /h2
+  sql:
+    init:
+      mode: always
+      schema-locations: optional:config-repo/h2/schema-h2.sql,optional:file:../config-repo/h2/schema-h2.sql
+  redis:
+    host: 127.0.0.1
+    port: 6379
+
+# ============================================================================
+# docker profile: MySQL + Redis，生产环境
+# ============================================================================
+---
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  profiles: docker
+  datasource:
+    url: jdbc:mysql://${SG_DB_HOST:127.0.0.1}:${SG_DB_PORT:3306}/sg-exam?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${SG_DB_USERNAME:root}
+    password: ${SG_DB_PASSWORD:123456}
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+  redis:
+    host: ${SG_REDIS_HOST:127.0.0.1}
+    port: ${SG_REDIS_PORT:6379}
+
+springdoc:
+  api-docs:
+    enabled: false
+
+# ============================================================================
+# Prometheus 监控（可选）
+# ============================================================================
+management:
+  endpoint:
+    health:
+      show-details: "ALWAYS"
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus"
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.github.tangyi: DEBUG
+
+# ============================================================================
+# 忽略鉴权的 URL 白名单
+# ============================================================================
+ignore:
+  urls:
+    - /
+    - /**/*.css
+    - /**/*.js
+    - /**/error
+    - /**/favicon.ico
+    - /**/*swagger*/**
+    - /**/*api-docs*/**
+    - /**/v3/**
+    - /**/csrf
+    - /**/h2/**
+    - /**/tool/**
+    - /**/v1/home/**
+    - /**/v1/search/**
